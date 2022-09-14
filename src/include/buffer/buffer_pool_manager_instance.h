@@ -52,6 +52,7 @@ class BufferPoolManagerInstance : public BufferPoolManager {
    */
   ~BufferPoolManagerInstance() override;
 
+
   /** @return size of the buffer pool */
   size_t GetPoolSize() override { return pool_size_; }
 
@@ -59,6 +60,13 @@ class BufferPoolManagerInstance : public BufferPoolManager {
   Page *GetPages() { return pages_; }
 
  protected:
+   /**
+   * @brief 
+   * @param 
+   * 
+   */
+  auto FindReplacePolicy(frame_id_t *frame_id) -> bool;
+
   /**
    * Fetch the requested page from the buffer pool.
    * @param page_id id of page to be fetched
@@ -128,7 +136,7 @@ class BufferPoolManagerInstance : public BufferPoolManager {
   /** Index of this BPI in the parallel BPM (if present, otherwise just 0) */
   const uint32_t instance_index_ = 0;
   /** Each BPI maintains its own counter for page_ids to hand out, must ensure they mod back to its instance_index_ */
-  std::atomic<page_id_t> next_page_id_ = instance_index_;
+  std::atomic<page_id_t> next_page_id_ ;
 
   /** Array of buffer pool pages. */
   Page *pages_;

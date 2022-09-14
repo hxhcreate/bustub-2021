@@ -47,6 +47,45 @@ BufferPoolManagerInstance::~BufferPoolManagerInstance() {
   delete replacer_;
 }
 
+auto BufferPoolManagerInstance::FindReplacePolicy(frame_id_t *frame_id) -> bool{
+  // not empty , return
+  //2 call Victim
+  //3 if the page pointed by the frame_uid is dirty , then should write back to disk
+  //4 delete the item in page_table
+  
+  // if free_list not empty then we don't need replace page
+  // return directly
+  if (!free_list_.empty()) {
+    *frame_id = free_list_.front(); 
+    free_list_.pop_front();
+    return true;
+  }
+  // else we need to find a replace page
+  if (replacer_->Victim(frame_id)) {
+    int replace_frame_id = -1;
+    for (auto &p: page_table_) {  // circle throuth to find page_id
+      page_id_t pid = p.first;
+      frame_id_t fid = p.second;
+      if (fid == *frame_id){
+        replace_frame_id = pid;
+        break;
+      }
+    }
+    if(replace_frame_id != -1) {  //success to find pid
+      Page *replace_page = &pages_[*frame_id];
+      if (replace_page->IsDirty()) {  // then write
+        char *data = replace_page->GetData();
+        disk_manager_->WritePage(replace_page->GetPageId(), data);
+        replace_page->pin_count_ = 0;
+      }
+      page_table_.erase(replace_page->GetPageId());
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool BufferPoolManagerInstance::FlushPgImp(page_id_t page_id) {
   // Make sure you call DiskManager::WritePage!
   return false;
@@ -73,6 +112,22 @@ Page *BufferPoolManagerInstance::FetchPgImp(page_id_t page_id) {
   // 2.     If R is dirty, write it back to the disk.
   // 3.     Delete R from the page table and insert P.
   // 4.     Update P's metadata, read in the page content from disk, and then return a pointer to P.
+  latch_.lock();
+  std::unordered_map<page_id_t, frame_id_t>::iterator it = page_table_.find(page_id);
+  if (it != page_table_.end()) {
+    frame_id_t frame_id = it->second;
+    Page *page = &pages_[frame_id];  // from frame_id get page
+     
+     // pin page
+     page->pin_count_++;
+     replacer_->Pin(frame_id); // into lru
+
+     latch_.unlock();
+     return page;
+  }
+ 
+
+  
   return nullptr;
 }
 
