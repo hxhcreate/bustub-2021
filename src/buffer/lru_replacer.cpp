@@ -14,16 +14,50 @@
 
 namespace bustub {
 
-LRUReplacer::LRUReplacer(size_t num_pages) {}
+LRUReplacer::LRUReplacer(size_t num_pages) {
+    capacity = num_pages;
+}
 
 LRUReplacer::~LRUReplacer() = default;
 
-bool LRUReplacer::Victim(frame_id_t *frame_id) { return false; }
+auto LRUReplacer::Victim(frame_id_t *frame_id) -> bool { 
+    latch_.lock();
+    if (lru.empty()) {
+        latch_.unlock();
+        return false;
+    } 
 
-void LRUReplacer::Pin(frame_id_t frame_id) {}
+    *frame_id = lru.back();  // delete from back
+    lru.pop_back();
+    hashMap.erase(*frame_id);
+    latch_.unlock();
+    return true;
+}
+// pined frame are using , and must delete from lrulist and map
+void LRUReplacer::Pin(frame_id_t frame_id) {
+    latch_.lock();
+    auto iter = hashMap.find(frame_id);
+    if (iter != hashMap.end()) {  // check if exists
+        lru.erase(hashMap[frame_id]);
+        hashMap.erase(frame_id);
+    }
+    latch_.unlock();
+}
 
-void LRUReplacer::Unpin(frame_id_t frame_id) {}
+void LRUReplacer::Unpin(frame_id_t frame_id) {
+    latch_.lock();
+    auto iter = hashMap.find(frame_id);
+    if (iter == hashMap.end()) {
+        while(lru.size() >= capacity - 1){
+            frame_id_t lru_element;
+            Victim(&lru_element);
+        } 
+        lru.push_front(frame_id);  //insert from front
+        hashMap.insert({frame_id, lru.begin()});
+    }
+    latch_.unlock();
+}
 
-size_t LRUReplacer::Size() { return 0; }
+auto LRUReplacer::Size() -> size_t { return lru.size(); }
 
 }  // namespace bustub

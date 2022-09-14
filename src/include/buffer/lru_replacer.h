@@ -15,6 +15,7 @@
 #include <list>
 #include <mutex>  // NOLINT
 #include <vector>
+#include <unordered_map>
 
 #include "buffer/replacer.h"
 #include "common/config.h"
@@ -30,6 +31,10 @@ class LRUReplacer : public Replacer {
    * Create a new LRUReplacer.
    * @param num_pages the maximum number of pages the LRUReplacer will be required to store
    */
+  std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> hashMap;
+  std::list<frame_id_t> lru;
+  std::mutex latch_;
+  size_t capacity;
   explicit LRUReplacer(size_t num_pages);
 
   /**
@@ -37,13 +42,13 @@ class LRUReplacer : public Replacer {
    */
   ~LRUReplacer() override;
 
-  bool Victim(frame_id_t *frame_id) override;
+  auto Victim(frame_id_t *frame_id) -> bool override;
 
   void Pin(frame_id_t frame_id) override;
 
   void Unpin(frame_id_t frame_id) override;
 
-  size_t Size() override;
+  auto Size() -> size_t override;
 
  private:
   // TODO(student): implement me!
