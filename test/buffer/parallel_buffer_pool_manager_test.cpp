@@ -13,6 +13,7 @@
 #include "buffer/parallel_buffer_pool_manager.h"
 #include <cstdio>
 #include <random>
+#include <iostream>
 #include <string>
 #include "buffer/buffer_pool_manager.h"
 #include "gtest/gtest.h"
@@ -21,7 +22,8 @@ namespace bustub {
 
 // NOLINTNEXTLINE
 // Check whether pages containing terminal characters can be recovered
-TEST(ParallelBufferPoolManagerTest, DISABLED_BinaryDataTest) {
+TEST(ParallelBufferPoolManagerTest, BinaryDataTest) {
+  
   const std::string db_name = "test.db";
   const size_t buffer_pool_size = 10;
   const size_t num_instances = 5;
@@ -31,8 +33,8 @@ TEST(ParallelBufferPoolManagerTest, DISABLED_BinaryDataTest) {
   std::uniform_int_distribution<char> uniform_dist(0);
 
   auto *disk_manager = new DiskManager(db_name);
-  auto *bpm = new ParallelBufferPoolManager(num_instances, buffer_pool_size, disk_manager);
 
+  auto *bpm = new ParallelBufferPoolManager(num_instances, buffer_pool_size, disk_manager);
   page_id_t page_id_temp;
   auto *page0 = bpm->NewPage(&page_id_temp);
 
@@ -87,8 +89,8 @@ TEST(ParallelBufferPoolManagerTest, DISABLED_BinaryDataTest) {
   delete disk_manager;
 }
 
-// NOLINTNEXTLINE
-TEST(ParallelBufferPoolManagerTest, DISABLED_SampleTest) {
+// NOLINTNEXTLIN
+TEST(ParallelBufferPoolManagerTest, SampleTest) {
   const std::string db_name = "test.db";
   const size_t buffer_pool_size = 10;
   const size_t num_instances = 5;

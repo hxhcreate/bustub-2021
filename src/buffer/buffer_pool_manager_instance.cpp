@@ -100,7 +100,10 @@ bool BufferPoolManagerInstance::FlushPgImp(page_id_t page_id) {
 
 void BufferPoolManagerInstance::FlushAllPgsImp() {
   // You can do it!
-  
+  for(int i = 0; i < static_cast<int>(pool_size_); i++){
+    Page * page = &pages_[i];
+    FlushPgImp(page->GetPageId());
+  }
 }
 
 Page *BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) {
@@ -120,13 +123,11 @@ Page *BufferPoolManagerInstance::NewPgImp(page_id_t *page_id) {
     }
   }
   if (is_all) {
-    latch_.unlock();
     return nullptr;
   }
   // 2.
   frame_id_t victim_fid;
   if (!FindReplacePolicy(&victim_fid)) {
-    latch_.unlock();
     return nullptr;
   }
   // 3.
