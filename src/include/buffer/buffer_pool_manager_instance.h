@@ -68,14 +68,15 @@ class BufferPoolManagerInstance : public BufferPoolManager {
   auto FindReplacePolicy(frame_id_t *frame_id) -> bool;
 
   /**
-   * Fetch the requested page from the buffer pool.
+   * Fetch the requested page from the buffer pool. 
+   * when a thread want to operate on a page
    * @param page_id id of page to be fetched
    * @return the requested page
    */
   Page *FetchPgImp(page_id_t page_id) override;
 
   /**
-   * Unpin the target page from the buffer pool.
+   * Unpin the target page from the buffer pool. 
    * @param page_id id of page to be unpinned
    * @param is_dirty true if the page should be marked as dirty, false otherwise
    * @return false if the page pin count is <= 0 before this call, true otherwise
@@ -84,6 +85,7 @@ class BufferPoolManagerInstance : public BufferPoolManager {
 
   /**
    * Flushes the target page to disk.
+   *  when a thread complete the process on this page
    * @param page_id id of page to be flushed, cannot be INVALID_PAGE_ID
    * @return false if the page could not be found in the page table, true otherwise
    */
